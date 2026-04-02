@@ -5,9 +5,7 @@ const config: CapacitorConfig = {
   appName: 'spectre.io',
   webDir: 'dist',
   server: {
-    url: 'https://slither.io',
-    androidScheme: 'https',
-    allowNavigation: ['slither.io', '*.slither.io', 'slither.com', '*.slither.com']
+    androidScheme: 'https'
   },
   plugins: {
     SplashScreen: {

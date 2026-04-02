@@ -1,14 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { fetchLatestNtl, getInjectedScript } from './services/NtlLoader';
-import Joystick from './components/Controls/Joystick';
-import BoostButton from './components/Controls/BoostButton';
-import ZoomSlider from './components/Controls/ZoomSlider';
+import { fetchLatestNtl } from './services/NtlLoader';
+import SpectrePlugin from './services/SpectrePlugin';
 import './App.css';
 
 const App: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [ntlCode, setNtlCode] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(0.8);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -29,42 +26,23 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (isLoaded && ntlCode && iframeRef.current) {
-      injectNTL(iframeRef.current, ntlCode);
+    if (isLoaded && ntlCode) {
+      injectNtlNatively(ntlCode);
     }
   }, [isLoaded, ntlCode]);
 
-  const injectNTL = (iframe: HTMLIFrameElement, code: string) => {
-    console.log('Injecting NTL logic into Slither.io...');
-    const script = getInjectedScript(code);
-    
-    // In Capacitor, we'll eventually use native bridge. 
-    // For now, we simulate with postMessage for the Web build.
-    iframe.contentWindow?.postMessage({ type: 'spectre_inject', script }, 'https://slither.io');
-  };
-
-  const sendInput = (type: string, data: any) => {
-    iframeRef.current?.contentWindow?.postMessage({ 
-      type: 'spectre_input', 
-      input: type, 
-      data 
-    }, 'https://slither.io');
-  };
-
-  const handleMove = (angle: number, distance: number) => {
-    // Convert angle to virtual mouse position around center
-    const x = Math.cos(angle) * 200 + window.innerWidth / 2;
-    const y = Math.sin(angle) * 200 + window.innerHeight / 2;
-    sendInput('move', { x, y });
-  };
-
-  const handleBoost = (active: boolean) => {
-    sendInput('boost', { active });
-  };
-
-  const handleZoomChange = (value: number) => {
-    setZoom(value);
-    sendInput('zoom', { value });
+  const injectNtlNatively = async (code: string) => {
+    console.log('Spectre.io: Calling Native Injection Bridge...');
+    try {
+      const result = await SpectrePlugin.injectMod({ code });
+      if (result.success) {
+        console.log('Spectre.io: Native Injection SUCCESS');
+      } else {
+        console.error('Spectre.io: Native Injection FAILED');
+      }
+    } catch (e) {
+      console.error('Spectre.io: Bridge Error:', e);
+    }
   };
 
   return (
@@ -79,21 +57,7 @@ const App: React.FC = () => {
       {!isLoaded && <div className="loading-screen">Starting Spectre.io...</div>}
       
       {isLoaded && (
-        <>
-          <div className="hud-indicator">Spectre.io Pro</div>
-          
-          <Joystick 
-            onMove={handleMove} 
-            onEnd={() => sendInput('move_end', {})} 
-          />
-          
-          <BoostButton onPress={handleBoost} />
-          
-          <ZoomSlider 
-            value={zoom} 
-            onChange={handleZoomChange} 
-          />
-        </>
+        <div className="hud-indicator">Spectre.io Pro Active</div>
       )}
     </div>
   );
