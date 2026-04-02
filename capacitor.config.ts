@@ -12,12 +12,6 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 0
-    },
-    LiveUpdates: {
-      appId: 'db63dc52',
-      channel: 'Production',
-      autoUpdateMethod: 'background',
-      maxVersions: 2
     }
   }
 };
