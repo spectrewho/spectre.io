@@ -5,6 +5,7 @@ const config: CapacitorConfig = {
   appName: 'spectre.io',
   webDir: 'dist',
   server: {
+    url: 'https://slither.io',
     androidScheme: 'https'
   },
   plugins: {
