@@ -1,0 +1,40 @@
+.boost-container {
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  width: 100px;
+  height: 100px;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.boost-button {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #a855f7;
+  background: rgba(168, 85, 247, 0.2);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.1s ease;
+  user-select: none;
+  touch-action: none;
+}
+
+.boost-button:active {
+  transform: scale(0.92);
+  background: rgba(168, 85, 247, 0.4);
+  box-shadow: 0 0 35px rgba(168, 85, 247, 0.8);
+}
+
+.boost-label {
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 10px #a855f7;
+}
