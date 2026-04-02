@@ -1,129 +1,149 @@
 /**
- * Spectre.io Live Patch - Auto Mobile Scaler (V1.2)
- * Fetched via GitHub for live mobile layout adjustments without APK rebuilds!
+ * Spectre.io Live Patch - 100% Dynamic Responsive Layout (V1.3)
+ * No hardcoded pixels. Uses Flexbox, VW/VH, and relative scaling.
  */
 
 (function() {
-    console.log('Spectre Live Patch: V1.2 - Executing robust Mobile Auto-Scaler...');
+    console.log('Spectre Live Patch V1.3: Pure Dynamic Layout Execution');
 
-    // 1. Force the document to obey the boundaries and inject some hard overrides.
+    // 1. Inject responsive CSS classes
     var style = document.createElement('style');
     style.innerHTML = `
-        /* General safety for small screens */
+        /* Lock screen to viewport, disable zooming/bouncing */
         html, body {
-            overflow: hidden !important; 
-            touch-action: none !important;
+            overflow: hidden !important;
             width: 100vw !important;
             height: 100vh !important;
             margin: 0 !important;
             padding: 0 !important;
+            touch-action: none !important;
         }
 
-        /* Enforce absolute max limits on all menus to prevent screen blowout */
-        .opensett-data, .popup-data, #rsoverlay, #divtl {
-            max-width: 95vw !important;
-            max-height: 90vh !important;
+        /* The dynamic login container overrides */
+        .spectre-dynamic-container {
+            /* Fluid width based on screen size */
+            width: 90vw !important;
+            max-width: 450px !important;
+            height: auto !important;
+            max-height: 85vh !important;
+            
+            /* Pure dynamic centering without negative margins */
+            position: absolute !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            margin: 0 !important;
+            
+            /* Internal layout */
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
             overflow-y: auto !important;
-            transform-origin: center center !important;
+            overflow-x: hidden !important;
+            padding: 5% !important;
+            box-sizing: border-box !important;
         }
 
-        /* Chat placement */
-        #chat_holder {
-            bottom: 5px !important;
-            left: 5px !important;
-            transform: scale(0.8) !important;
-            transform-origin: bottom left !important;
+        /* 100% responsive logo */
+        .spectre-dynamic-logo {
+            max-width: 100% !important;
+            height: auto !important;
+            margin-bottom: 3vh !important;
+            object-fit: contain !important;
         }
-        
-        /* Nickname placeholder and inputs */
-        input[name="nick"], input[type="text"] {
-            width: 80% !important;
-            max-width: 300px !important;
-            height: 45px !important;
-            font-size: 18px !important;
+
+        /* Fluid input fields */
+        .spectre-dynamic-input {
+            width: 100% !important;
+            height: 8vh !important;
+            min-height: 45px !important;
+            font-size: clamp(16px, 4vw, 22px) !important;
             text-align: center !important;
-            margin: 10px auto !important;
-            display: block !important;
+            box-sizing: border-box !important;
             border-radius: 8px !important;
         }
 
-        /* Beef up touch targets for mobile */
-        .mybutton, .myPlayButton, .mygb, .mysb, .mycs, .mypb, .savekey {
-            padding: 15px 25px !important;
-            font-size: 18px !important;
-            min-height: 48px !important;
-            min-width: 120px !important;
-            margin: 5px !important;
-            border-radius: 12px !important;
+        /* Fluid buttons */
+        .spectre-dynamic-btn {
+            width: 100% !important;
+            padding: 3vh 0 !important;
+            min-height: 50px !important;
+            font-size: clamp(16px, 5vw, 24px) !important;
+            margin-top: 2vh !important;
             box-sizing: border-box !important;
+            border-radius: 12px !important;
+            text-align: center !important;
         }
-        
-        /* Stop huge logos pushing everything out */
-        img {
+
+        /* Move chat strictly to bottom left dynamically */
+        #chat_holder, .c_fl {
+            left: 2vw !important;
+            bottom: 2vh !important;
+            top: auto !important;
             max-width: 80vw !important;
-            height: auto !important;
+            transform: scale(0.85) !important;
+            transform-origin: bottom left !important;
+        }
+
+        /* Leaderboard and server info dynamically tied to Top-Right */
+        #divtl, .nsi {
+            right: 2vw !important;
+            top: 2vh !important;
+            left: auto !important;
+            transform: scale(0.8) !important;
+            transform-origin: top right !important;
         }
     `;
     document.head.appendChild(style);
 
-    // 2. Aggressive JS Scaling Loop
-    // Because NTL uses hardcoded inline pixels (e.g. left: 50%; margin-left: -300px), 
-    // CSS rules alone won't always work. We must calculate the viewport and override.
-    function applyMobileFixes() {
-        var w = window.innerWidth;
-        var h = window.innerHeight;
+    // 2. Intelligent DOM Walker
+    // Instead of guessing IDs, it finds the Nickname input, walks UP the tree to find its main 
+    // center wrapper, and applies the dynamic classes.
+    function applyDynamicClasses() {
+        // Find the exact nickname text box
+        var nickTarget = document.querySelector('input[name="nick"], input[id="nick"]');
         
-        // We only need to fix if the screen is "mobile" size (e.g. width under 850px)
-        if (w > 850) return; 
-
-        var scaleRatio = w / 800; // If NTL expects 800px, we scale down by this ratio to fit.
-
-        // Loop over direct children of body that look like UI panels
-        var elements = document.querySelectorAll('body > div');
-        for (var i = 0; i < elements.length; i++) {
-            var el = elements[i];
-            var z = parseInt(el.style.zIndex || 0, 10);
+        if (nickTarget) {
+            nickTarget.classList.add('spectre-dynamic-input');
             
-            // Only affect high z-index elements (UI), skip background or canvas
-            if (z >= 10 && el.id !== 'chat_holder' && el.style.display !== 'none') {
-                
-                // Target the main login UI (often absolutely positioned in center)
-                if (el.style.left === '50%' || el.style.position === 'absolute') {
-                    
-                    // Reset NTL's hardcoded fixed margin logic and use CSS transform
-                    el.style.left = '50%';
-                    el.style.marginLeft = '0px'; 
-                    
-                    // The magic trick to perfectly center and scale any NTL container:
-                    el.style.transform = 'translate(-50%, 0) scale(' + scaleRatio + ')';
-                    el.style.transformOrigin = 'top center';
-                    
-                    // If it's pushed way down, adjust its top
-                    if (parseInt(el.style.top || 0, 10) > 100) {
-                        el.style.top = '15%'; // Move it up slightly on mobile
-                    }
+            // Walk up to find the root UI panel that overlays the screen
+            var parent = nickTarget.parentElement;
+            var loginContainer = null;
+            
+            while (parent && parent.tagName !== 'BODY') {
+                // The root login box usually has a high z-index and absolute positioning
+                if (window.getComputedStyle(parent).position === 'absolute' && 
+                    parseInt(window.getComputedStyle(parent).zIndex || 0) > 5) {
+                    loginContainer = parent;
+                    // Keep walking up just in case there's an even higher wrapper
                 }
+                parent = parent.parentElement;
             }
-        }
-        
-        // Also specifically fix any logo images inside a div
-        var imgs = document.querySelectorAll('img');
-        for (var j = 0; j < imgs.length; j++) {
-            if (imgs[j].src && (imgs[j].src.indexOf('logo') !== -1 || imgs[j].src.indexOf('slogo') !== -1)) {
-                imgs[j].style.width = '100%'; 
-                imgs[j].style.maxWidth = '300px'; 
-                imgs[j].style.height = 'auto';
-                imgs[j].style.display = 'block';
-                imgs[j].style.margin = '0 auto';
-                if (imgs[j].parentElement) {
-                    imgs[j].parentElement.style.width = '100%';
-                    imgs[j].parentElement.style.textAlign = 'center';
-                }
+
+            // If we found the root UI panel, take full control of it
+            if (loginContainer) {
+                loginContainer.classList.add('spectre-dynamic-container');
+                
+                // Force all images inside it to behave
+                var imgs = loginContainer.querySelectorAll('img');
+                imgs.forEach(img => img.classList.add('spectre-dynamic-logo'));
+                
+                // Force play buttons to behave
+                var playBtns = loginContainer.querySelectorAll('.myPlayButton, button');
+                playBtns.forEach(btn => btn.classList.add('spectre-dynamic-btn'));
+                
+                // Fix NTL's hardcoded inline styles wiping out our CSS
+                loginContainer.style.left = '50%';
+                loginContainer.style.marginLeft = '0px';
+                loginContainer.style.marginTop = '0px';
+                loginContainer.style.width = '90vw';
             }
         }
     }
 
-    // Run this several times as NTL initializes and injects different components
-    setInterval(applyMobileFixes, 2000); // Check and enforce layout every 2 seconds
+    // NTL dynamically creates DOM elements over several seconds.
+    // We attach our dynamic listener on an interval so it dominates any NTL changes.
+    setInterval(applyDynamicClasses, 500);
 
 })();
