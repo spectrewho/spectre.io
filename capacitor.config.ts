@@ -6,7 +6,8 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     url: 'https://slither.io',
-    androidScheme: 'https'
+    androidScheme: 'https',
+    allowNavigation: ['slither.io', '*.slither.io', 'slither.com', '*.slither.com']
   },
   plugins: {
     SplashScreen: {
