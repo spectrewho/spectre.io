@@ -1,107 +1,96 @@
 /**
- * Spectre.io Live Patch - V1.6
- * AGGRESSIVE Full-Screen Rectangular Scaling
+ * Spectre.io Live Patch - V2.0 Final Engine Integration
+ * Touch-to-Mouse Emulator and Clean Viewport
  */
 
 (function() {
-    console.log('Spectre Live Patch V1.6: Aggressive Rectangular Snap Active');
+    console.log('Spectre Live Patch V2.0: Final Native Emulator Active');
 
-    // 1. Force the viewport to strict 1:1 rectangular mapping
-    var meta = document.createElement('meta');
-    meta.name = 'viewport';
-    meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
-    document.getElementsByTagName('head')[0].appendChild(meta);
-
-    // 2. High-Priority CSS Overrides
+    // 1. Clean CSS - Stop fighting the layout, just prevent screen bleed
     var style = document.createElement('style');
     style.innerHTML = `
-        /* KILL THE SQUARE - Force the world to be a rectangle */
+        /* Lock screen, let UI flow naturally */
         html, body {
-            width: 100% !important;
-            height: 100% !important;
-            overflow: hidden !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: #000 !important;
-            position: fixed !important;
-        }
-
-        /* Target the main Slither canvas and force it to fill the screen */
-        canvas {
+            overflow: hidden !important; 
+            touch-action: none !important; 
             width: 100vw !important;
             height: 100vh !important;
-            max-width: none !important;
-            max-height: none !important;
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            z-index: 1 !important;
-            transform: none !important; /* Kill any desktop-scaling transforms */
+            margin: 0 !important;
+            padding: 0 !important;
         }
 
-        /* Identify NTL's fixed-width containers and smash them */
-        #login, #playh, .opensett-data, .popup-data, #rsoverlay, .spectre-dynamic-container {
-            width: 90vw !important;
-            max-width: 500px !important; /* Keep the menu readable but fit on screen */
-            min-width: 0 !important;
-            left: 50% !important;
-            top: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            margin: 0 !important;
-            position: absolute !important;
-            z-index: 10 !important;
-            height: auto !important;
+        /* Prevent NTL panels from exploding past the phone screen */
+        .opensett-data, .popup-data, #login, #playh, #smh {
+            max-width: 95vw !important;
             max-height: 95vh !important;
             overflow-y: auto !important;
+            box-sizing: border-box !important;
         }
 
-        /* Scale down components that are too big for mobile */
-        #chat_holder {
-            transform: scale(0.7) !important;
-            transform-origin: bottom left !important;
-            bottom: 5px !important;
-            left: 5px !important;
+        /* Ensure input typing is visible and big enough */
+        input[type="text"] {
+            min-height: 44px !important;
+            font-size: 16px !important;
         }
 
-        #divtl {
-            transform: scale(0.7) !important;
-            transform-origin: top right !important;
-            top: 5px !important;
-            right: 5px !important;
-            left: auto !important;
+        .mybutton, .myPlayButton, button {
+            min-height: 44px !important;
+            font-size: 18px !important;
+            cursor: pointer !important;
         }
 
-        /* Kill any scrollbars */
-        ::-webkit-scrollbar {
-            display: none !important;
-        }
+        /* Hide unnecessary text to save space */
+        .slogan { display: none !important; }
+        
+        /* Make sure chat box and leaderboard stay inside edges */
+        #chat_holder { left: 5px !important; bottom: 5px !important; top: auto !important; transform-origin: bottom left !important; transform: scale(0.8) !important; }
+        #divtl { right: 5px !important; top: 5px !important; left: auto !important; transform-origin: top right !important; transform: scale(0.8) !important; }
     `;
     document.head.appendChild(style);
 
-    // 3. Mutation Observer to catch dynamic elements
-    function zapLayout() {
-        // Find every div with an ID and check for hardcoded widths
-        var divs = document.getElementsByTagName('div');
-        for (var i = 0; i < divs.length; i++) {
-            var div = divs[i];
-            var style = window.getComputedStyle(div);
-            // If it has a hardcoded width larger than the screen, reset it
-            if (parseInt(style.width) > window.innerWidth) {
-                div.style.width = '100vw';
-                div.style.maxWidth = '100vw';
-            }
-        }
-        
-        // Specifically fix the Slither.io "Outer" containers
-        var outer = document.getElementById('outer-container');
-        if (outer) outer.style.width = '100vw';
+
+    // 2. Universal Touch-to-Mouse Emulator
+    // NTL buttons and select menus are programmed for desktop clicks.
+    // This catches your finger taps and translates them into perfect left clicks.
+    
+    function simulateMouseEvent(type, touch) {
+        var event = new MouseEvent(type, {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            screenX: touch.screenX,
+            screenY: touch.screenY,
+            buttons: 1
+        });
+        touch.target.dispatchEvent(event);
     }
 
-    const observer = new MutationObserver(zapLayout);
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Capture when finger touches screen
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches.length > 0) {
+            var target = e.touches[0].target;
+            // DO NOT intercept canvas (the game itself needs native touch for snake joystick)
+            if (target.tagName !== 'CANVAS') {
+                simulateMouseEvent('mousedown', e.touches[0]);
+                // If it's an input box, pull up the keyboard
+                if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA') {
+                    target.focus();
+                }
+            }
+        }
+    }, { passive: false });
 
-    // Run immediately and then frequently
-    zapLayout();
-    setInterval(zapLayout, 1000);
+    // Capture when finger leaves screen
+    document.addEventListener('touchend', function(e) {
+        if (e.changedTouches.length > 0) {
+            var target = e.changedTouches[0].target;
+            if (target.tagName !== 'CANVAS') {
+                simulateMouseEvent('mouseup', e.changedTouches[0]);
+                simulateMouseEvent('click', e.changedTouches[0]);
+            }
+        }
+    }, { passive: false });
 
 })();
