@@ -45,6 +45,46 @@
 
     try {
         injectCss(baseUrl + "bootstrap.css");
+        
+        // --- SPECTRE MOBILE PATCH (V1.9) ---
+        let mobileStyle = document.createElement('style');
+        mobileStyle.textContent = `
+            /* Force everything to fit the screen */
+            html, body { overflow: hidden !important; touch-action: none !important; }
+            
+            /* Scale down the massive NTL menus for mobile */
+            #divtl, .opensett-data, #rsoverlay, .popup-data { 
+                transform: scale(0.85); 
+                transform-origin: top left; 
+            }
+            
+            /* Make buttons easier to tap */
+            .mybutton, .myPlayButton, .savekey, .mygb, .mysb, .mycs, .mypb {
+                padding: 12px 20px !important;
+                font-size: 16px !important;
+                margin: 5px !important;
+            }
+            
+            /* Fix chat position */
+            #chat_holder { bottom: 20px !important; left: 20px !important; scale: 1.2; }
+            
+            /* Fix Leaderboard position */
+            #divtl { top: 10px !important; right: 10px !important; left: auto !important; }
+            
+            /* Better hud visibility */
+            .hud-indicator { font-size: 10px; opacity: 0.5; }
+        `;
+        document.head.appendChild(mobileStyle);
+
+        // Force Mobile Viewport
+        var viewport = document.querySelector("meta[name=viewport]");
+        if (!viewport) {
+            viewport = document.createElement("meta");
+            viewport.name = "viewport";
+            document.head.appendChild(viewport);
+        }
+        viewport.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
+
         injectScript(baseUrl + "jquery-2.2.4.min.js", function() {
             console.log('Spectre.io: jQuery Loaded. Ready for NTL Core...');
             injectScript(baseUrl + "main-mt.js", function() {
